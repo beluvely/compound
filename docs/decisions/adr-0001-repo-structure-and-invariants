@@ -1,0 +1,148 @@
+# ADR-0001: Repository Structure, Local-First Posture, and Core Invariants
+
+**Status:** Accepted
+
+**Date:** 2026-01-15
+
+---
+
+## Context
+
+Compound is being developed as an editor-first knowledge workspace where understanding compounds over time through preserved provenance, reference-based reuse, and enforced consistency.
+
+Early-stage projects often drift due to:
+
+* ambiguous repository structure
+* inconsistent documentation placement
+* premature backend assumptions
+* accidental content duplication
+* erosion of core product invariants
+
+Because Compound’s value depends on *long-lived correctness* rather than short-term velocity, these risks must be addressed at the repository level from the outset.
+
+---
+
+## Decision
+
+We establish the following decisions as **foundational and binding** for the Compound repository:
+
+### 1. Repository Structure Is Opinionated
+
+* `README.md` is the **product constitution** and highest-priority source of truth.
+* All additional documentation lives under `docs/`, organized by intent:
+
+  * `docs/architecture/`
+  * `docs/design/`
+  * `docs/decisions/` (ADRs)
+  * `docs/agents/`
+* Agent behavior is governed by `.github/copilot-instructions.md`.
+
+Random or ad-hoc documentation placement is disallowed.
+
+---
+
+### 2. Local-First Is the Default Posture
+
+Compound is designed and implemented as a **local-first system**:
+
+* The document model is the primary source of truth.
+* State is explicit, serializable, and inspectable.
+* Persistence initially targets local storage (IndexedDB).
+* Backend sync, auth, and collaboration are **additive concerns**, not prerequisites.
+
+This posture enables:
+
+* fast iteration on editor ergonomics
+* offline safety
+* future collaboration without architectural rework
+
+---
+
+### 3. Core Product Invariants Are Non-Negotiable
+
+The following invariants, defined in `README.md`, are binding:
+
+1. **Document-first** — documents are the primary state container.
+2. **Addressable nodes** — every block has a stable identity.
+3. **Reference over duplication** — reuse via references, never copies.
+4. **Exploration ≠ Authority** — exploration and spec are distinct but linked views.
+5. **Reversibility by default** — fold, focus, lift, and filters never destroy data.
+
+Any feature, script, or migration that violates these invariants is invalid.
+
+---
+
+### 4. Changes to Invariants Require Explicit Process
+
+* Invariants may not be changed implicitly.
+* Any proposed change must:
+
+  * update `README.md`
+  * introduce a new ADR describing the change
+  * clearly document consequences and trade-offs
+
+Silent drift is explicitly disallowed.
+
+---
+
+## Alternatives Considered
+
+### 1. Defer Structure Until Later
+
+Rejected.
+
+Deferring structure increases velocity short-term but almost guarantees:
+
+* semantic drift
+* inconsistent agent behavior
+* expensive rewrites once persistence and collaboration are introduced
+
+---
+
+### 2. Server-First Architecture
+
+Rejected (for initial development).
+
+A server-first posture would:
+
+* slow iteration on editor interactions
+* bias design toward CRUD patterns
+* complicate future offline and provenance guarantees
+
+Local-first provides a superset of future capabilities with manageable early complexity.
+
+---
+
+## Consequences
+
+### Positive
+
+* Strong alignment between product vision and code
+* Reduced risk of architectural erosion
+* Clear expectations for contributors and agents
+* Clean seams for future backend and collaboration layers
+
+### Trade-offs
+
+* Slightly higher upfront discipline
+* More explicit modeling required early
+* Fewer shortcuts available during prototyping
+
+These trade-offs are intentional and accepted.
+
+---
+
+## Follow-ups
+
+The following items should be created next to operationalize this ADR:
+
+1. Core domain types (`Document`, `Node`, `SpecDocument`, `Transclusion`)
+2. Explicit state boundaries (document vs view state)
+3. Local persistence layer with schema versioning
+4. Additional ADRs as normalization, drift control, and collaboration are introduced
+
+---
+
+## One-Line Summary
+
+> Compound commits early to structure so that knowledge can compound safely later.
