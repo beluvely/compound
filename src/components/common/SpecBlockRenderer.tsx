@@ -64,7 +64,8 @@ export function SpecBlockRenderer({
       )
     }
 
-    const handleStartEdit = () => {
+    const handleStartEdit = (e: React.MouseEvent) => {
+      e.stopPropagation()
       setEditValue(sourceNode.content.value)
       setIsEditing(true)
     }
@@ -77,6 +78,14 @@ export function SpecBlockRenderer({
         })
       }
       setIsEditing(false)
+    }
+
+    const handleBlur = (e: React.FocusEvent) => {
+      // Only save if we're not clicking within the same component
+      const relatedTarget = e.relatedTarget as HTMLElement
+      if (!relatedTarget || !e.currentTarget.contains(relatedTarget)) {
+        handleSave()
+      }
     }
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -135,7 +144,7 @@ export function SpecBlockRenderer({
               ref={textareaRef}
               value={editValue}
               onChange={(e) => setEditValue(e.target.value)}
-              onBlur={handleSave}
+              onBlur={handleBlur}
               onKeyDown={handleKeyDown}
               className="w-full resize-none rounded-md border border-input bg-background p-2 text-sm outline-none focus:ring-1 focus:ring-ring"
               rows={Math.max(3, editValue.split("\n").length)}
