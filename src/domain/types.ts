@@ -48,6 +48,7 @@ export interface ExplorationDocument {
 }
 
 export interface SpecBlock {
+  id: SpecBlockId
   kind: "heading" | "transclusion"
   sourceNodeId?: NodeId
   includeSubtree?: boolean

@@ -7,9 +7,8 @@ import type {
   Tag,
   IsoDateString,
   NodeProvenance,
+  DuplicateMode,
 } from "../domain/types"
-
-type DuplicateMode = Extract<NodeProvenance, { kind: "derived" }>["mode"]
 
 type DocumentActions = {
   init: (doc: ExplorationDocument) => void
@@ -217,7 +216,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
     const { newRootId, created, createdIds } = duplicateNodeGraph({
       sourceId: sourceNodeId,
       nodesById: exploration.nodesById,
-      mode: mode,
+      mode: mode as DuplicateMode,
       includeSubtree,
       at,
     })

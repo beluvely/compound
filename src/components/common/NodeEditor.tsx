@@ -3,7 +3,7 @@ import { useViewStore } from "@/stores/view.store"
 import { useSpecStore } from "@/stores/spec.store"
 import type { NodeId } from "@/domain/types"
 import { Button } from "@/components/ui/button"
-import { ArrowUp, Copy, Trash2, ChevronRight, ChevronDown } from "lucide-react"
+import { ArrowUp, Copy, Trash2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useState, useRef, useEffect } from "react"
 
@@ -33,7 +33,7 @@ export function NodeEditor({ nodeId, isSelected, depth = 0 }: NodeEditorProps) {
       textareaRef.current.focus()
       textareaRef.current.setSelectionRange(editValue.length, editValue.length)
     }
-  }, [isEditing, editValue.length])
+  }, [isEditing]) // Only focus when isEditing changes, not on every editValue change
 
   useEffect(() => {
     setEditValue(node.content.value)
@@ -111,6 +111,13 @@ export function NodeEditor({ nodeId, isSelected, depth = 0 }: NodeEditorProps) {
   useEffect(() => {
     if (isSelected && !isEditing) {
       const handleKeyPress = (e: KeyboardEvent) => {
+        // Only handle keyboard shortcuts if focus is not in a textarea/input
+        // This prevents conflicts with Spec view editing
+        const target = e.target as HTMLElement
+        if (target.tagName === 'TEXTAREA' || target.tagName === 'INPUT') {
+          return
+        }
+        
         // Enter: start editing current node
         if (e.key === "Enter" && !e.metaKey && !e.ctrlKey) {
           setIsEditing(true)
