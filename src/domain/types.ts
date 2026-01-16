@@ -7,6 +7,7 @@ export type SpecBlockId = string
 export type SpecDocumentId = string
 export type IsoDateString = string
 export type Tag = string
+export type DuplicateMode = "shallow" | "deep"
 
 export interface NodeContent {
   type: "text" | "heading" | "list" | "code"
@@ -15,9 +16,11 @@ export interface NodeContent {
 }
 
 export interface NodeProvenance {
+  kind: "user" | "derived"
+  sourceNodeId?: NodeId
   createdAt: IsoDateString
   createdBy?: string
-  source?: string
+  derivedFrom?: string
 }
 
 export interface Node {
@@ -29,8 +32,8 @@ export interface Node {
   meta: {
     createdAt: IsoDateString
     updatedAt: IsoDateString
+    provenance?: NodeProvenance
   }
-  provenance?: NodeProvenance
 }
 
 export interface ExplorationDocument {
@@ -38,18 +41,18 @@ export interface ExplorationDocument {
   rootIds: NodeId[]
   nodesById: Record<NodeId, Node>
   meta: {
+    title?: string
     createdAt: IsoDateString
     updatedAt: IsoDateString
   }
 }
 
 export interface SpecBlock {
-  id: SpecBlockId
-  type: "heading" | "reference"
+  kind: "heading" | "transclusion"
   sourceNodeId?: NodeId
   includeSubtree?: boolean
   title?: string
-  level?: number
+  level?: 1 | 2 | 3
   children: SpecBlockId[]
   meta: {
     createdAt: IsoDateString
@@ -59,11 +62,12 @@ export interface SpecBlock {
 
 export interface SpecDocument {
   id: SpecDocumentId
-  rootBlockIds: SpecBlockId[]
-  specBlocksById: Record<SpecBlockId, SpecBlock>
+  rootIds: SpecBlockId[]
+  blocksById: Record<SpecBlockId, SpecBlock>
   meta: {
     createdAt: IsoDateString
     updatedAt: IsoDateString
+    title?: string
   }
 }
 

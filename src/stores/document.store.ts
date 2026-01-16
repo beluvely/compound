@@ -45,6 +45,9 @@ type DocumentActions = {
   /** Remove node from parent/root ordering. Does not necessarily delete node record (safe default). */
   detachNode: (input: { nodeId: NodeId; parentId?: NodeId }) => void
 
+  /** Delete node and all its children */
+  deleteNode: (nodeId: NodeId) => void
+
   /** Hard delete (optional). Prefer detach + GC later. */
   deleteNodeHard?: (nodeId: NodeId) => void
 }
@@ -61,7 +64,6 @@ const genId = (): string =>
     : `id_${Math.random().toString(16).slice(2)}_${Date.now()}`
 
 const createEmptyExploration = (): ExplorationDocument => ({
-  schemaVersion: 0,
   id: "exploration:local",
   rootIds: [],
   nodesById: {},
@@ -94,7 +96,8 @@ function duplicateNodeGraph(params: {
   includeSubtree: boolean
   at: IsoDateString
 }): { newRootId: NodeId; created: Record<NodeId, Node>; createdIds: NodeId[] } {
-  const { sourceId, nodesById, mode, includeSubtree, at } = params
+  const { sourceId, nodesById, includeSubtree, at } = params
+  // mode param exists in signature but not used in implementation yet
   const source = nodesById[sourceId]
   if (!source) throw new Error(`Source node not found: ${sourceId}`)
 
@@ -112,8 +115,7 @@ function duplicateNodeGraph(params: {
     const provenance: NodeProvenance = {
       kind: "derived",
       sourceNodeId: currentSourceId,
-      mode,
-      at,
+      createdAt: at,
     }
 
     const childIds = includeSubtree ? s.children.map(walk) : []
@@ -215,7 +217,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
     const { newRootId, created, createdIds } = duplicateNodeGraph({
       sourceId: sourceNodeId,
       nodesById: exploration.nodesById,
-      mode,
+      mode: mode,
       includeSubtree,
       at,
     })
@@ -389,6 +391,51 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
         exploration: {
           ...doc,
           nodesById: { ...doc.nodesById, [parentId]: updatedParent },
+          meta: { ...doc.meta, updatedAt: nowIso() },
+        },
+      }
+    })
+  },
+
+  deleteNode: (nodeId: NodeId) => {
+    set((state) => {
+      const doc = state.exploration
+      const node = doc.nodesById[nodeId]
+      if (!node) return state
+
+      // Remove from root if it's there
+      const rootIds = doc.rootIds.filter((id) => id !== nodeId)
+
+      // Remove from any parent's children
+      const nodesById = { ...doc.nodesById }
+      Object.values(nodesById).forEach((n) => {
+        if (n.children.includes(nodeId)) {
+          nodesById[n.id] = {
+            ...n,
+            children: n.children.filter((id) => id !== nodeId),
+            meta: { ...n.meta, updatedAt: nowIso() },
+          }
+        }
+      })
+
+      // Delete the node itself
+      delete nodesById[nodeId]
+
+      // Recursively delete children
+      const deleteRecursive = (id: NodeId) => {
+        const child = nodesById[id]
+        if (child) {
+          child.children.forEach(deleteRecursive)
+          delete nodesById[id]
+        }
+      }
+      node.children.forEach(deleteRecursive)
+
+      return {
+        exploration: {
+          ...doc,
+          nodesById,
+          rootIds,
           meta: { ...doc.meta, updatedAt: nowIso() },
         },
       }

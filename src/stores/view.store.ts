@@ -25,7 +25,11 @@ export type ViewStore = {
 } & ViewActions
 
 const createEmptyView = (): ViewState => ({
+  selectedNodeId: null,
+  focusedRootId: null,
   collapsedNodeIds: {},
+  collapsedSpecBlockIds: {},
+  filters: {},
 })
 
 export const useViewStore = create<ViewStore>((set, get) => ({
@@ -34,10 +38,14 @@ export const useViewStore = create<ViewStore>((set, get) => ({
   init: (view) => set({ view }),
 
   selectNode: (selectedNodeId) =>
-    set((state) => ({ view: { ...state.view, selectedNodeId } })),
+    set((state) => ({
+      view: { ...state.view, selectedNodeId: selectedNodeId ?? null },
+    })),
 
   setFocusedRoot: (focusedRootId) =>
-    set((state) => ({ view: { ...state.view, focusedRootId } })),
+    set((state) => ({
+      view: { ...state.view, focusedRootId: focusedRootId ?? null },
+    })),
 
   isCollapsed: (nodeId) => !!get().view.collapsedNodeIds[nodeId],
 

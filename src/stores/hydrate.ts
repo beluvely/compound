@@ -16,6 +16,7 @@ export async function hydrateStoresFromIndexedDb(): Promise<void> {
 /** Call this after meaningful state changes (debounce in UI). */
 export async function persistStoresToIndexedDb(): Promise<void> {
   const state: PersistedStateV0 = {
+    version: 0,
     exploration: useDocumentStore.getState().exploration,
     spec: useSpecStore.getState().spec,
     view: useViewStore.getState().view,

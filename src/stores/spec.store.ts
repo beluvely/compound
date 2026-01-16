@@ -30,6 +30,14 @@ type SpecActions = {
     index?: number
   }) => SpecBlockId
 
+  /** Alias for liftTransclusion */
+  liftToSpec: (input: {
+    sourceNodeId: NodeId
+    includeSubtree: boolean
+    parentBlockId?: SpecBlockId
+    index?: number
+  }) => SpecBlockId
+
   removeBlock: (blockId: SpecBlockId) => void
 
   moveBlock: (input: {
@@ -49,10 +57,9 @@ export type SpecStore = {
 const nowIso = (): IsoDateString => new Date().toISOString()
 
 const createEmptySpec = (): SpecDocument => ({
-  schemaVersion: 0,
   id: "spec:local" as SpecDocumentId,
   rootIds: [],
-  specBlocksById: {},
+  blocksById: {},
   meta: { createdAt: nowIso(), updatedAt: nowIso(), title: "Spec" },
 })
 
@@ -76,13 +83,13 @@ export const useSpecStore = create<SpecStore>((set, get) => ({
 
   init: (spec) => set({ spec }),
 
-  getBlock: (id) => get().spec.specBlocksById[id],
+  getBlock: (id) => get().spec.blocksById[id],
 
   addHeading: ({ title, level, parentBlockId, index }) => {
     const id = genId() as SpecBlockId
     set((state) => {
       const spec = state.spec
-      const block: Extract<SpecBlock, { kind: "heading" }> = {
+      const block: SpecBlock = {
         id,
         kind: "heading",
         level,
@@ -91,7 +98,7 @@ export const useSpecStore = create<SpecStore>((set, get) => ({
         meta: { createdAt: nowIso(), updatedAt: nowIso() },
       }
 
-      const specBlocksById = { ...spec.specBlocksById, [id]: block }
+      const blocksById = { ...spec.blocksById, [id]: block }
 
       if (!parentBlockId) {
         const rootIds =
@@ -102,18 +109,17 @@ export const useSpecStore = create<SpecStore>((set, get) => ({
         return {
           spec: {
             ...spec,
-            specBlocksById,
+            blocksById,
             rootIds,
             meta: { ...spec.meta, updatedAt: nowIso() },
           },
         }
       }
 
-      const parent =
-        specBlocksById[parentBlockId] ?? spec.specBlocksById[parentBlockId]
+      const parent = blocksById[parentBlockId] ?? spec.blocksById[parentBlockId]
       if (!parent) return state
 
-      specBlocksById[parentBlockId] = {
+      blocksById[parentBlockId] = {
         ...parent,
         children:
           typeof index === "number"
@@ -125,7 +131,7 @@ export const useSpecStore = create<SpecStore>((set, get) => ({
       return {
         spec: {
           ...spec,
-          specBlocksById,
+          blocksById,
           meta: { ...spec.meta, updatedAt: nowIso() },
         },
       }
@@ -143,7 +149,7 @@ export const useSpecStore = create<SpecStore>((set, get) => ({
     set((state) => {
       const spec = state.spec
 
-      const block: Extract<SpecBlock, { kind: "transclusion" }> = {
+      const block: SpecBlock = {
         id,
         kind: "transclusion",
         sourceNodeId,
@@ -152,7 +158,7 @@ export const useSpecStore = create<SpecStore>((set, get) => ({
         meta: { createdAt: nowIso(), updatedAt: nowIso() },
       }
 
-      const specBlocksById = { ...spec.specBlocksById, [id]: block }
+      const blocksById = { ...spec.blocksById, [id]: block }
 
       if (!parentBlockId) {
         const rootIds =
@@ -163,18 +169,17 @@ export const useSpecStore = create<SpecStore>((set, get) => ({
         return {
           spec: {
             ...spec,
-            specBlocksById,
+            blocksById,
             rootIds,
             meta: { ...spec.meta, updatedAt: nowIso() },
           },
         }
       }
 
-      const parent =
-        specBlocksById[parentBlockId] ?? spec.specBlocksById[parentBlockId]
+      const parent = blocksById[parentBlockId] ?? spec.blocksById[parentBlockId]
       if (!parent) return state
 
-      specBlocksById[parentBlockId] = {
+      blocksById[parentBlockId] = {
         ...parent,
         children:
           typeof index === "number"
@@ -186,7 +191,7 @@ export const useSpecStore = create<SpecStore>((set, get) => ({
       return {
         spec: {
           ...spec,
-          specBlocksById,
+          blocksById,
           meta: { ...spec.meta, updatedAt: nowIso() },
         },
       }
@@ -195,20 +200,25 @@ export const useSpecStore = create<SpecStore>((set, get) => ({
     return id
   },
 
+  /** Alias for liftTransclusion for convenience */
+  liftToSpec: (input) => {
+    return get().liftTransclusion(input)
+  },
+
   removeBlock: (blockId) => {
     set((state) => {
       const spec = state.spec
-      const block = spec.specBlocksById[blockId]
+      const block = spec.blocksById[blockId]
       if (!block) return state
 
       // Remove from any parent's children or root
       const rootIds = removeFromArray(spec.rootIds, blockId)
-      const specBlocksById = { ...spec.specBlocksById }
+      const blocksById = { ...spec.blocksById }
 
       // Remove from all parents (simple & safe; optimize later)
-      for (const [id, b] of Object.entries(specBlocksById)) {
+      for (const [id, b] of Object.entries(blocksById)) {
         if (b.children?.includes(blockId)) {
-          specBlocksById[id as SpecBlockId] = {
+          blocksById[id as SpecBlockId] = {
             ...b,
             children: removeFromArray(b.children, blockId),
             meta: { ...b.meta, updatedAt: nowIso() },
@@ -217,13 +227,13 @@ export const useSpecStore = create<SpecStore>((set, get) => ({
       }
 
       // NOTE: We do not cascade delete children here in v0. That’s a later policy decision.
-      delete specBlocksById[blockId]
+      delete blocksById[blockId]
 
       return {
         spec: {
           ...spec,
           rootIds,
-          specBlocksById,
+          blocksById,
           meta: { ...spec.meta, updatedAt: nowIso() },
         },
       }
@@ -233,19 +243,19 @@ export const useSpecStore = create<SpecStore>((set, get) => ({
   moveBlock: ({ blockId, fromParentBlockId, toParentBlockId, toIndex }) => {
     set((state) => {
       const spec = state.spec
-      const block = spec.specBlocksById[blockId]
+      const block = spec.blocksById[blockId]
       if (!block) return state
 
-      const specBlocksById = { ...spec.specBlocksById }
+      const blocksById = { ...spec.blocksById }
 
       // Remove from old container
       let rootIds = spec.rootIds
       if (!fromParentBlockId) {
         rootIds = removeFromArray(rootIds, blockId)
       } else {
-        const fromParent = specBlocksById[fromParentBlockId]
+        const fromParent = blocksById[fromParentBlockId]
         if (!fromParent) return state
-        specBlocksById[fromParentBlockId] = {
+        blocksById[fromParentBlockId] = {
           ...fromParent,
           children: removeFromArray(fromParent.children, blockId),
           meta: { ...fromParent.meta, updatedAt: nowIso() },
@@ -256,9 +266,9 @@ export const useSpecStore = create<SpecStore>((set, get) => ({
       if (!toParentBlockId) {
         rootIds = insertIntoArray(rootIds, blockId, toIndex)
       } else {
-        const toParent = specBlocksById[toParentBlockId]
+        const toParent = blocksById[toParentBlockId]
         if (!toParent) return state
-        specBlocksById[toParentBlockId] = {
+        blocksById[toParentBlockId] = {
           ...toParent,
           children: insertIntoArray(toParent.children, blockId, toIndex),
           meta: { ...toParent.meta, updatedAt: nowIso() },
@@ -269,7 +279,7 @@ export const useSpecStore = create<SpecStore>((set, get) => ({
         spec: {
           ...spec,
           rootIds,
-          specBlocksById,
+          blocksById,
           meta: { ...spec.meta, updatedAt: nowIso() },
         },
       }
