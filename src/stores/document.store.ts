@@ -18,6 +18,25 @@ type DocumentActions = {
   createNode: (input: { node: Node; parentId?: NodeId; index?: number }) => void
 
   /**
+   * Bulk sync from editor: replaces exploration with new nodes and rootIds
+   * Used by TipTap bidirectional sync
+   */
+  syncFromEditor: (input: {
+    nodes: Node[]
+    rootIds: NodeId[]
+  }) => void
+
+  /**
+   * Scoped sync: updates a specific set of nodes (e.g., from transclusion edit)
+   * Merges updated nodes into exploration, handling creates/updates/deletes within scope
+   */
+  syncNodeScope: (input: {
+    nodes: Node[]
+    rootIds: NodeId[]
+    scopeNodeIds: NodeId[] // Original scope before edits (to identify deletes)
+  }) => void
+
+  /**
    * Intentional duplication with provenance.
    * This creates a NEW node (new ID) whose meta.provenance points to the source node.
    * This does NOT create a live link; use Spec transclusion for live references.
@@ -146,6 +165,114 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
   init: (doc) => set({ exploration: doc }),
 
   getNode: (id) => get().exploration.nodesById[id],
+
+  syncFromEditor: ({ nodes, rootIds }) => {
+    set((state) => {
+      const doc = state.exploration
+      const oldNodesById = doc.nodesById
+      
+      // Build new nodesById, preserving createdAt from existing nodes
+      const nodesById: Record<NodeId, Node> = {}
+      nodes.forEach((node) => {
+        const existingNode = oldNodesById[node.id]
+        if (existingNode) {
+          // Preserve createdAt, only update content and updatedAt
+          nodesById[node.id] = {
+            ...node,
+            meta: {
+              ...node.meta,
+              createdAt: existingNode.meta.createdAt, // Preserve
+              updatedAt: nowIso(), // Update
+            },
+          }
+        } else {
+          // New node, use as-is
+          nodesById[node.id] = node
+        }
+      })
+
+      return {
+        exploration: {
+          ...doc,
+          nodesById,
+          rootIds,
+          meta: { ...doc.meta, updatedAt: nowIso() },
+        },
+      }
+    })
+  },
+
+  syncNodeScope: ({ nodes, rootIds: scopeRootIds, scopeNodeIds }) => {
+    set((state) => {
+      const doc = state.exploration
+      const oldNodesById = doc.nodesById
+      
+      // Build updated nodesById by:
+      // 1. Keeping all nodes outside the scope
+      // 2. Replacing/adding nodes within the scope
+      const nodesById: Record<NodeId, Node> = { ...oldNodesById }
+      
+      // Remove old scope nodes (they'll be replaced or deleted)
+      scopeNodeIds.forEach(id => {
+        delete nodesById[id]
+      })
+      
+      // Add/update nodes from the edited scope
+      nodes.forEach((node) => {
+        const existingNode = oldNodesById[node.id]
+        if (existingNode) {
+          // Preserve createdAt for existing nodes
+          nodesById[node.id] = {
+            ...node,
+            meta: {
+              ...node.meta,
+              createdAt: existingNode.meta.createdAt,
+              updatedAt: nowIso(),
+            },
+          }
+        } else {
+          // New node
+          nodesById[node.id] = node
+        }
+      })
+      
+      // Update rootIds:
+      // 1. Remove old scope root nodes
+      // 2. Add new scope root nodes in their place
+      // 3. Preserve order and all other root nodes
+      const newRootIds = [...doc.rootIds]
+      
+      // Find position of first scope node in rootIds
+      const firstScopeIndex = newRootIds.findIndex(id => scopeNodeIds.includes(id))
+      
+      if (firstScopeIndex !== -1) {
+        // Remove all old scope nodes from rootIds
+        const filteredRootIds = newRootIds.filter(id => !scopeNodeIds.includes(id))
+        
+        // Insert new scope roots at the original position
+        filteredRootIds.splice(firstScopeIndex, 0, ...scopeRootIds)
+        
+        return {
+          exploration: {
+            ...doc,
+            nodesById,
+            rootIds: filteredRootIds,
+            meta: { ...doc.meta, updatedAt: nowIso() },
+          },
+        }
+      } else {
+        // Scope nodes weren't in rootIds (they might be nested)
+        // Just update nodesById
+        return {
+          exploration: {
+            ...doc,
+            nodesById,
+            meta: { ...doc.meta, updatedAt: nowIso() },
+          },
+        }
+      }
+    })
+  },
 
   createNode: ({ node, parentId, index }) => {
     set((state) => {

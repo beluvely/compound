@@ -1,4 +1,5 @@
 import { create } from "zustand"
+import type { Editor } from "@tiptap/react"
 import type { NodeId, SpecBlockId, ViewState } from "../domain/types"
 
 type ViewActions = {
@@ -18,10 +19,15 @@ type ViewActions = {
   toggleSpecCollapsed?: (blockId: SpecBlockId) => void
 
   setFilters: (filters: ViewState["filters"]) => void
+
+  /** Phase 4: Store TipTap editor instance for keyboard shortcuts */
+  setTipTapEditor: (editor: Editor | null) => void
 }
 
 export type ViewStore = {
   view: ViewState
+  /** Phase 4: TipTap editor instance for lifting */
+  tipTapEditor: Editor | null
 } & ViewActions
 
 const createEmptyView = (): ViewState => ({
@@ -34,6 +40,7 @@ const createEmptyView = (): ViewState => ({
 
 export const useViewStore = create<ViewStore>((set, get) => ({
   view: createEmptyView(),
+  tipTapEditor: null,
 
   init: (view) => set({ view }),
 
@@ -92,4 +99,6 @@ export const useViewStore = create<ViewStore>((set, get) => ({
 
   setFilters: (filters) =>
     set((state) => ({ view: { ...state.view, filters } })),
+
+  setTipTapEditor: (editor) => set({ tipTapEditor: editor }),
 }))

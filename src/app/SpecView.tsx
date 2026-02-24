@@ -2,76 +2,18 @@ import { useSpecStore } from "@/stores/spec.store"
 import { useDocumentStore } from "@/stores/document.store"
 import { SpecBlockRenderer } from "@/components/common/SpecBlockRenderer"
 import { ArrowUp } from "lucide-react"
-import { useEffect } from "react"
-import { useViewStore } from "@/stores/view.store"
-import type { NodeId } from "@/domain/types"
 
 /**
  * SpecView - The curated source of truth.
  * 
  * M1.5: Composed of lifted/transcluded blocks from Exploration.
  * Users lift content via ⌘⇧L shortcut.
+ * 
+ * Phase 6: TipTap-based transclusion rendering with inline editing.
  */
 export function SpecView() {
   const spec = useSpecStore((s) => s.spec)
   const exploration = useDocumentStore((s) => s.exploration)
-  const { view, selectNode } = useViewStore()
-
-  // Build flat list of all transcluded node IDs for navigation
-  const allNodeIds: NodeId[] = []
-  spec.rootIds.forEach(blockId => {
-    const block = spec.blocksById[blockId]
-    if (block?.kind === "transclusion" && block.sourceNodeId) {
-      // Get all nodes in this transclusion
-      const { resolveSemanticScope } = require("@/lib/semantic-lift")
-      const scope = block.includeSubtree
-        ? resolveSemanticScope(block.sourceNodeId, exploration.nodesById, exploration.rootIds)
-        : { includedNodeIds: [block.sourceNodeId] }
-      allNodeIds.push(...scope.includedNodeIds)
-    }
-  })
-
-  // Global arrow key navigation
-  useEffect(() => {
-    const handleGlobalKeyDown = (e: globalThis.KeyboardEvent) => {
-      // Only handle if not in textarea/input
-      const target = e.target as HTMLElement
-      if (target.tagName === 'TEXTAREA' || target.tagName === 'INPUT') {
-        return
-      }
-
-      // ArrowDown: Move to next node
-      if (e.key === 'ArrowDown' && view.selectedNodeId) {
-        e.preventDefault()
-        const currentIndex = allNodeIds.indexOf(view.selectedNodeId)
-        if (currentIndex < allNodeIds.length - 1) {
-          const nextId = allNodeIds[currentIndex + 1]
-          selectNode(nextId)
-          // Scroll into view
-          const element = document.querySelector(`[data-block-id="${nextId}"]`)
-          element?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
-        }
-        return
-      }
-
-      // ArrowUp: Move to previous node
-      if (e.key === 'ArrowUp' && view.selectedNodeId) {
-        e.preventDefault()
-        const currentIndex = allNodeIds.indexOf(view.selectedNodeId)
-        if (currentIndex > 0) {
-          const prevId = allNodeIds[currentIndex - 1]
-          selectNode(prevId)
-          // Scroll into view
-          const element = document.querySelector(`[data-block-id="${prevId}"]`)
-          element?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
-        }
-        return
-      }
-    }
-
-    document.addEventListener('keydown', handleGlobalKeyDown)
-    return () => document.removeEventListener('keydown', handleGlobalKeyDown)
-  }, [view.selectedNodeId, allNodeIds, selectNode])
 
   return (
     <div className="flex h-screen flex-col">

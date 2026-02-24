@@ -4,6 +4,7 @@ import { useViewStore } from "@/stores/view.store"
 import { useSpecStore } from "@/stores/spec.store"
 import { useDocumentStore } from "@/stores/document.store"
 import { resolveSemanticScope } from "@/lib/semantic-lift"
+import { getCurrentNodeId } from "@/lib/tiptap-helpers"
 import { useToastStore } from "@/components/ui/toast"
 
 /**
@@ -24,7 +25,7 @@ export function useKeyboardShortcuts() {
     currentView,
   } = useNavigationStore()
 
-  const { view, selectNode } = useViewStore()
+  const { view, tipTapEditor } = useViewStore()
   const { liftTransclusion } = useSpecStore()
   const { exploration } = useDocumentStore()
   const { addToast } = useToastStore()
@@ -80,38 +81,55 @@ export function useKeyboardShortcuts() {
       if (isMod && e.shiftKey && (e.key === "L" || e.key === "l")) {
         e.preventDefault()
         
+        if (currentView !== "exploration") {
+          addToast("Must be in Exploration view to lift", "error", 2000)
+          return
+        }
+
+        // Phase 4: Get nodeId from TipTap cursor position
+        const nodeId = getCurrentNodeId(tipTapEditor)
+        
         console.log("[Lift] Command triggered", {
           currentView,
-          selectedNodeId: view.selectedNodeId,
+          nodeId,
+          hasTipTapEditor: !!tipTapEditor,
           hasExploration: !!exploration.nodesById,
         })
         
-        if (currentView === "exploration" && view.selectedNodeId) {
-          const scope = resolveSemanticScope(
-            view.selectedNodeId,
-            exploration.nodesById,
-            exploration.rootIds
-          )
-
-          console.log("[Lift] Resolved scope:", scope)
-
-          // Lift the entire semantic scope
-          liftTransclusion({
-            sourceNodeId: scope.rootNodeId,
-            includeSubtree: true, // Include all nodes in scope
-          })
-
-          const nodeCount = scope.includedNodeIds.length
-          addToast(
-            `Lifted ${nodeCount} block${nodeCount > 1 ? "s" : ""} to Spec`,
-            "success",
-            3000
-          )
-        } else if (!view.selectedNodeId) {
-          addToast("No block selected", "error", 2000)
-        } else {
-          addToast("Must be in Exploration view to lift", "error", 2000)
+        if (!nodeId) {
+          addToast("Could not detect block - try clicking in a different block", "error", 3000)
+          console.warn("[Lift] No nodeId found. TipTap may not have synced yet, or cursor is in an unsaved block.")
+          return
         }
+
+        // Verify node exists in store
+        const node = exploration.nodesById[nodeId]
+        if (!node) {
+          addToast("Block not found in store - content may not be saved yet", "error", 3000)
+          console.warn("[Lift] Node not found in store:", nodeId)
+          return
+        }
+
+        const scope = resolveSemanticScope(
+          nodeId,
+          exploration.nodesById,
+          exploration.rootIds
+        )
+
+        console.log("[Lift] Resolved scope:", scope)
+
+        // Lift the entire semantic scope
+        liftTransclusion({
+          sourceNodeId: scope.rootNodeId,
+          includeSubtree: true, // Include all nodes in scope
+        })
+
+        const nodeCount = scope.includedNodeIds.length
+        addToast(
+          `Lifted ${nodeCount} block${nodeCount > 1 ? "s" : ""} to Spec`,
+          "success",
+          3000
+        )
         return
       }
 
@@ -137,9 +155,9 @@ export function useKeyboardShortcuts() {
     goDown,
     currentView,
     view.selectedNodeId,
+    tipTapEditor,
     exploration,
     liftTransclusion,
     addToast,
-    selectNode,
   ])
 }

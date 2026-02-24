@@ -1,0 +1,58 @@
+{
+  "version": "1.0.0",
+  "timestamp": "2026-02-21T17:45:48.838Z",
+  "mode": "skip",
+  "preset": "base",
+  "rootPath": "/Users/brian.lanier/Projects/personal/compound",
+  "bundles": [
+    "base",
+    "scripts"
+  ],
+  "files": {
+    "created": [
+      ".instructions.md",
+      "AGENT_GUIDE.md",
+      "docs/ARCHITECTURE.md",
+      "docs/INITIATIVES/I00_DOC_EXAMPLES/DATA_MAP.md",
+      "docs/INITIATIVES/I00_DOC_EXAMPLES/PLAN.example.md",
+      "docs/INITIATIVES/I00_DOC_EXAMPLES/PLAN.template-guide.md",
+      "docs/INITIATIVES/I00_DOC_EXAMPLES/README.example.md",
+      "docs/INITIATIVES/I00_DOC_EXAMPLES/README.template-guide.md",
+      "docs/INITIATIVES/I00_DOC_EXAMPLES/REPORT.example.md",
+      "docs/INITIATIVES/I00_DOC_EXAMPLES/REPORT.template-guide.md",
+      "docs/INITIATIVES/I00_DOC_EXAMPLES/ROUTE_MAP.md",
+      "docs/INITIATIVES/I0_START_HERE/M1_SETUP_INVESTIGATION.md",
+      "docs/INITIATIVES/I0_START_HERE/M2_STABILITY_WIN.md",
+      "docs/INITIATIVES/I0_START_HERE/M3_SUPABASE_SCHEMA.md",
+      "docs/INITIATIVES/I0_START_HERE/M4_VALIDATE_DOCUMENT.md",
+      "docs/INITIATIVES/I0_START_HERE/PLAN.md",
+      "docs/INITIATIVES/I0_START_HERE/README.md",
+      "docs/INITIATIVES/I0_START_HERE/REPORT.md",
+      "docs/PRD.md",
+      "docs/PRODUCT_SOT.md",
+      "docs/PROMPTS/PROJECT_INVESTIGATOR.md",
+      "scripts/new-initiative.mjs",
+      "scripts/initiative-cli.mjs"
+    ],
+    "skipped": [
+      "README.md",
+      "package.json",
+      "package.json"
+    ],
+    "renamed": []
+  },
+  "scripts": {
+    "added": {
+      "initiative:new": "node ./scripts/new-initiative.mjs",
+      "i:new": "node ./scripts/initiative-cli.mjs new",
+      "i:add": "node ./scripts/initiative-cli.mjs add"
+    },
+    "skipped": {},
+    "packageJsonUpdated": true
+  },
+  "summary": {
+    "totalFiles": 26,
+    "totalScripts": 3,
+    "success": true
+  }
+}

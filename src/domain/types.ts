@@ -83,9 +83,52 @@ export interface ViewState {
   }
 }
 
+// Chat & AI types
+export type MessageRole = "user" | "assistant"
+export type ChatThreadId = string
+export type MessageId = string
+
+export interface LiftSource {
+  type: "selection" | "message" | "turn" | "thread"
+  messageId?: MessageId
+  content: string
+  context?: string
+}
+
+export interface Message {
+  id: MessageId
+  threadId: ChatThreadId
+  role: MessageRole
+  content: string
+  timestamp: IsoDateString
+  metadata?: {
+    tokens?: number
+    model?: string
+    liftSource?: LiftSource
+  }
+}
+
+export interface ChatThread {
+  id: ChatThreadId
+  nodeId: NodeId // The heading/scope this thread is bound to
+  title: string // Auto-generated from context or user-set
+  messages: Message[]
+  createdAt: IsoDateString
+  updatedAt: IsoDateString
+  isArchived: boolean
+  metadata?: {
+    scopeContext?: string // Snapshot of the semantic scope when created
+    model?: string // Default model for this thread
+  }
+}
+
 export interface PersistedStateV0 {
   version: 0
   exploration: ExplorationDocument
   spec: SpecDocument
   view: ViewState
+  chat: {
+    threads: Record<ChatThreadId, ChatThread>
+    activeThreadId: ChatThreadId | null
+  }
 }

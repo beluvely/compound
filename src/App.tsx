@@ -6,9 +6,11 @@ import { ViewSwitcher } from "@/components/navigation/ViewSwitcher"
 import { ToastContainer } from "@/components/ui/toast"
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts"
 import { useNavigationStore } from "@/stores/navigation.store"
+import { ThreadPanel } from "@/components/chat/ThreadPanel"
 
 function App() {
   const [isHydrated, setIsHydrated] = useState(false)
+  const [isThreadPanelOpen, setIsThreadPanelOpen] = useState(false)
   const { currentView } = useNavigationStore()
   
   // Register global keyboard shortcuts
@@ -19,6 +21,34 @@ function App() {
       setIsHydrated(true)
     })
   }, [])
+
+  // Thread panel keyboard shortcut (⌘+Shift+T)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const isMod = e.metaKey || e.ctrlKey
+      if (isMod && e.shiftKey && e.key === "T") {
+        e.preventDefault()
+        setIsThreadPanelOpen(!isThreadPanelOpen)
+      }
+      // Debug: Create test thread with ⌘+Shift+R
+      if (isMod && e.shiftKey && e.key === "R") {
+        e.preventDefault()
+        console.log('Creating test thread...')
+        // Import chat store manually for debugging
+        import('@/stores/chat.store').then(({ useChatStore }) => {
+          const { createThread } = useChatStore.getState()
+          const threadId = createThread({
+            nodeId: 'seed-1', // Assuming seed data has this
+            title: 'Debug Test Thread'
+          })
+          console.log('Created debug thread:', threadId)
+        })
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [isThreadPanelOpen])
 
   if (!isHydrated) {
     return (
@@ -66,6 +96,12 @@ function App() {
         )}
       </div>
 
+      {/* Thread Panel */}
+      <ThreadPanel 
+        isOpen={isThreadPanelOpen} 
+        onToggle={() => setIsThreadPanelOpen(!isThreadPanelOpen)} 
+      />
+
       {/* View Switcher (⌘+K) */}
       <ViewSwitcher />
 
@@ -79,6 +115,8 @@ function App() {
           <div><kbd>⌘=</kbd> Go to Spec</div>
           <div><kbd>⌘-</kbd> Go to Exploration</div>
           <div><kbd>⌘⇧L</kbd> Lift to Spec</div>
+          <div><kbd>⌘⇧T</kbd> Toggle Chat Panel</div>
+          <div><kbd>⌘⇧R</kbd> Create Debug Thread</div>
         </div>
       </div>
     </>

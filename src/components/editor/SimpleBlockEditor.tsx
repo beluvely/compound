@@ -2,6 +2,8 @@ import { useState, useRef, useEffect, type KeyboardEvent } from "react"
 import type { Node, NodeId } from "@/domain/types"
 import { useDocumentStore } from "@/stores/document.store"
 import { useViewStore } from "@/stores/view.store"
+import { ThreadIndicator } from "@/components/chat/ThreadIndicator"
+import { BlockActionMenu } from "@/components/chat/BlockActionMenu"
 
 interface SimpleBlockEditorProps {
   /** Root node IDs to display */
@@ -286,14 +288,20 @@ export function SimpleBlockEditor({
         key={nodeId}
         data-block-id={nodeId}
         className={`
-          group relative px-6 py-2 cursor-text
-          ${isSelected ? "bg-blue-50 border-l-2 border-blue-400" : "hover:bg-gray-50/50"}
+          group relative px-6 py-2 cursor-text transition-colors duration-200
+          ${isSelected ? "bg-blue-50 border-l-2 border-blue-400" : "hover:bg-gray-50 hover:border-l-2 hover:border-gray-300"}
         `}
         onClick={() => {
           selectNode(nodeId)
           setEditingNodeId(nodeId)
         }}
       >
+        {/* Hover Action Menu */}
+        <BlockActionMenu 
+          nodeId={nodeId} 
+          isVisible={true} // Always render, visibility controlled by CSS 
+        />
+        
         <NodeBlock
           node={node}
           isEditing={isEditing}
@@ -370,9 +378,13 @@ function NodeBlock({ node, isEditing, onKeyDown, onChange }: NodeBlockProps) {
   }
 
   if (!isEditing) {
+    const isHeading = node.content.type === "heading"
     return (
-      <div className={`${getStyles()} cursor-text min-h-[1.5rem]`}>
-        {node.content.value || <span className="text-gray-400 italic">Empty block</span>}
+      <div className={`${getStyles()} cursor-text min-h-[1.5rem] flex items-center`}>
+        <span className="flex-1">
+          {node.content.value || <span className="text-gray-400 italic">Empty block</span>}
+        </span>
+        {isHeading && <ThreadIndicator nodeId={node.id} />}
       </div>
     )
   }
