@@ -3,6 +3,7 @@ import { useDocumentStore } from "@/stores/document.store"
 import { useViewStore } from "@/stores/view.store"
 import { SimpleBlockEditor } from "@/components/editor/SimpleBlockEditor"
 import { TipTapNodeEditor } from "@/components/editor/TipTapNodeEditor"
+import { Header } from "@/components/navigation/Header"
 import { createSeedDocument } from "@/lib/seed-data"
 import { persistStoresToIndexedDb } from "@/stores/hydrate"
 import type { Node, NodeId } from "@/domain/types"
@@ -61,18 +62,11 @@ export function ExplorationView() {
 
   return (
     <div className="flex h-screen flex-col">
-      {/* Header */}
-      <div className="border-b border-gray-200 bg-white px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold">Exploration</h1>
-            <p className="text-sm text-gray-500">
-              Workbench for thinking, alternatives, and rationale
-            </p>
-          </div>
-          
-          {/* Phase 2: Testing controls */}
-          <div className="flex gap-2">
+      <Header 
+        title="Exploration"
+        subtitle="Workbench for thinking, alternatives, and rationale"
+        actions={
+          <>
             {isEmpty && (
               <button
                 onClick={handleSeedData}
@@ -97,9 +91,9 @@ export function ExplorationView() {
             >
               {useTipTap ? "TipTap" : "SimpleBlockEditor (Old)"}
             </button>
-          </div>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {/* Block Editor */}
       <div className="flex-1 overflow-hidden">

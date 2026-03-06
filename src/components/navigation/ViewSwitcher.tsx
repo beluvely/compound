@@ -61,6 +61,9 @@ export function ViewSwitcher() {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-3 py-2 text-sm text-gray-500 flex items-center gap-2">
+          <img src="/logo/icon.svg" alt="Compound" className="w-5 h-5" />
+          <span className="font-medium text-gray-700">Compound</span>
+          <span className="text-gray-400 mx-2">·</span>
           <Command className="w-4 h-4" />
           <span>Switch View</span>
         </div>

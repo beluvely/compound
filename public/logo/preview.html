@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Compound Logo Preview</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, sans-serif; padding: 40px; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    h1 { font-size: 24px; font-weight: 500; margin-bottom: 40px; }
+    h2 { font-size: 18px; font-weight: 500; margin: 40px 0 20px; color: #666; }
+    .grid { display: grid; gap: 40px; }
+    .variant { padding: 40px; border: 1px solid #e5e5e5; border-radius: 8px; }
+    .variant h3 { font-size: 14px; font-weight: 500; margin-bottom: 20px; color: #999; text-transform: uppercase; letter-spacing: 0.05em; }
+    .light { background: #ffffff; }
+    .dark { background: #1a1a1a; }
+    .sizes { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
+    .size-label { font-size: 12px; color: #999; margin-right: 8px; }
+    img { display: block; }
+    .scale-test { display: flex; gap: 40px; align-items: flex-end; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Compound Logo System</h1>
+    
+    <h2>Icon/Mark</h2>
+    <div class="grid">
+      <div class="variant light">
+        <h3>Light Mode</h3>
+        <div class="scale-test">
+          <div><div class="size-label">16px</div><img src="/logo/icon.svg" width="16" height="16" alt="Icon 16px"></div>
+          <div><div class="size-label">24px</div><img src="/logo/icon.svg" width="24" height="24" alt="Icon 24px"></div>
+          <div><div class="size-label">32px</div><img src="/logo/icon.svg" width="32" height="32" alt="Icon 32px"></div>
+          <div><div class="size-label">64px</div><img src="/logo/icon.svg" width="64" height="64" alt="Icon 64px"></div>
+        </div>
+      </div>
+      
+      <div class="variant dark">
+        <h3>Dark Mode</h3>
+        <div class="scale-test">
+          <div><div class="size-label">16px</div><img src="/logo/icon-dark.svg" width="16" height="16" alt="Icon 16px"></div>
+          <div><div class="size-label">24px</div><img src="/logo/icon-dark.svg" width="24" height="24" alt="Icon 24px"></div>
+          <div><div class="size-label">32px</div><img src="/logo/icon-dark.svg" width="32" height="32" alt="Icon 32px"></div>
+          <div><div class="size-label">64px</div><img src="/logo/icon-dark.svg" width="64" height="64" alt="Icon 64px"></div>
+        </div>
+      </div>
+    </div>
+
+    <h2>Wordmark</h2>
+    <div class="grid">
+      <div class="variant light">
+        <h3>Light Mode</h3>
+        <img src="/logo/wordmark.svg" width="240" height="48" alt="Wordmark">
+      </div>
+      
+      <div class="variant dark">
+        <h3>Dark Mode</h3>
+        <img src="/logo/wordmark-dark.svg" width="240" height="48" alt="Wordmark dark">
+      </div>
+    </div>
+
+    <h2>Full Logo (Icon + Wordmark)</h2>
+    <div class="grid">
+      <div class="variant light">
+        <h3>Light Mode</h3>
+        <img src="/logo/full-logo.svg" width="320" height="64" alt="Full logo">
+      </div>
+      
+      <div class="variant dark">
+        <h3>Dark Mode</h3>
+        <img src="/logo/full-logo-dark.svg" width="320" height="64" alt="Full logo dark">
+      </div>
+    </div>
+
+    <h2>Logo Concept</h2>
+    <div class="variant light">
+      <p style="color: #666; line-height: 1.6;">
+        The icon represents <strong>knowledge compounding over time</strong> through three stacked layers:<br><br>
+        • <strong>Bottom layer (lightest):</strong> Foundation knowledge<br>
+        • <strong>Middle layer (medium):</strong> Accumulated understanding<br>
+        • <strong>Top layer (darkest):</strong> Current, active work<br><br>
+        The vertical connection lines suggest addressability and linkage between layers—reflecting Compound's document-first, reference-based architecture.
+      </p>
+    </div>
+  </div>
+</body>
+</html>

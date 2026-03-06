@@ -16,6 +16,7 @@
     "i:add": "node ./scripts/initiative-cli.mjs add"
   },
   "dependencies": {
+    "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-slot": "^1.2.4",
     "@tiptap/extension-bullet-list": "^3.15.3",
     "@tiptap/extension-document": "^3.15.3",
@@ -35,6 +36,7 @@
     "lucide-react": "^0.562.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "react-router-dom": "^7.13.1",
     "tailwind-merge": "^3.4.0",
     "zustand": "^5.0.10"
   },

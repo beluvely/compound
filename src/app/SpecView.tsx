@@ -1,6 +1,7 @@
 import { useSpecStore } from "@/stores/spec.store"
 import { useDocumentStore } from "@/stores/document.store"
 import { SpecBlockRenderer } from "@/components/common/SpecBlockRenderer"
+import { Header } from "@/components/navigation/Header"
 import { ArrowUp } from "lucide-react"
 
 /**
@@ -18,16 +19,10 @@ export function SpecView() {
   return (
     <div className="flex h-screen flex-col">
       {/* Header */}
-      <div className="border-b border-gray-200 bg-white px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold">Spec</h1>
-            <p className="text-sm text-gray-500">
-              Curated source of truth, composed from Exploration
-            </p>
-          </div>
-        </div>
-      </div>
+      <Header 
+        title="Spec"
+        subtitle="Curated source of truth, composed from Exploration"
+      />
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
